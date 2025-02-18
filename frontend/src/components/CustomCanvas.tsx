@@ -12,13 +12,7 @@ type CustomCanvasProps = {
 
 function CustomCanvas({ selectedBar }: CustomCanvasProps) {
 
-    /* console.log(selectedBar);
-    const [position, setPosition] = useState([3.4301854408067705, 13.60071277758357, -32.28290921318735]);
-    useEffect(() => {
-        setPosition(selectedBar ? [selectedBar.labelX, selectedBar.value, selectedBar.labelZ] : );
-    }, [selectedBar]);
-    console.log(position); */
-    const controls = useRef<any>(null); // Riferimento a OrbitControls
+  const controls = useRef<any>(null); // Riferimento a OrbitControls
   const initialCameraPosition = [10,15,-55];
   const initialTarget = [50, 0.5, 5];
   const initialZoom = 1;

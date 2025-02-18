@@ -18,14 +18,6 @@ type BarChartProps = {
 function BarChart({ selectedBar }: BarChartProps) {
   const { data, filteredData, setFilteredData, setSelectedBar, xLabels, zLabels, showAveragePlane, isGreaterChecked } = useDataContext();
   
-  /* let xLabels = new Set(fetched_data.map((d) => d.labelX));
-  let zLabels = new Set(fetched_data.map((d) => d.labelZ));
-  const data: tabData[] = fetched_data.map((d) => ({
-    ...d,
-    labelX: Array.from(xLabels).indexOf(d.labelX),
-    labelZ: Array.from(zLabels).indexOf(d.labelZ)
-  })); */
-
   const handleBarClick = (id: string, event: ThreeEvent<MouseEvent>) => {
     const clickedBar: tabData | undefined = data.find((bar) => bar.id.toString() === id);
     
@@ -120,6 +112,13 @@ function BarChart({ selectedBar }: BarChartProps) {
   return (
     <>
       {
+        <Bar
+        data={data}
+        // onClick={handleBarClick}
+        // aura={selectedBar ? selectedBar.id === d.id : false}
+      />
+        };
+      {/* {
         data.map((d: tabData) => {
           const isFiltered = filteredData.some((f) => f.labelX === d.labelX && f.labelZ === d.labelZ && f.value === d.value);
           return (
@@ -132,7 +131,8 @@ function BarChart({ selectedBar }: BarChartProps) {
               aura={selectedBar ? selectedBar.id === d.id : false}
             />
           );
-        })};
+        })
+        }; */}
       <XAxis length={xAxisLength} />
       <YAxis xLength={xAxisLength} />
       <ZAxis length={zAxisLength} />
