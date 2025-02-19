@@ -42,7 +42,6 @@ function BarChart({ selectedBar }: BarChartProps) {
       else 
         setFilteredData(data.filter((d) => d.value <= clickedBar.value)); // Filtra i dati
     }
-    console.log(filteredData);
   }
 
   // const instanceData = useMemo(() => {
@@ -149,8 +148,6 @@ function BarChart({ selectedBar }: BarChartProps) {
         setHover={setHoveredBar}
         setTooltip={setTooltipPosition}
         onClickbar={handleBarClick}
-        // onClick={handleBarClick}
-        // aura={selectedBar ? selectedBar.id === d.id : false}
       />
         };
       {/* {

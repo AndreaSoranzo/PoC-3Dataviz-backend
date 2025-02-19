@@ -1,4 +1,4 @@
-import { useRef, useMemo,useEffect,useState } from 'react';
+import { useRef, useMemo,useEffect,useState,useLayoutEffect } from 'react';
 import * as THREE from 'three';
 import { ThreeEvent,useThree } from '@react-three/fiber';
 import { rawData, tabData } from '../App';
@@ -41,6 +41,18 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         new THREE.Color('yellow'),
         new THREE.Color('gray'),
       ];
+
+      const count = instanceData.length;
+      const op = new Float32Array(count).fill(1.0);
+    //   var instanceOpacity: Float32Array<ArrayBuffer> =  new Float32Array(count);
+      var [instanceOpacity, setInstanceOpacity] = useState(() => { // Inizializzazione con una funzione
+        const array = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+            array[i] = 1.0;
+        }
+        return array;
+        });
+
     
     // const instanceData = useMemo(() => {
     //     const array = [];
@@ -56,8 +68,6 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
     // }, [data]);
     
     // const { id, labelX, value, labelZ } = row;
-
-    const count = instanceData.length;
 
     const matriceswC = useMemo(() => {
         const array = new Float32Array(count * 16);
@@ -80,6 +90,8 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
           const color = availableColors[instanceData[i].labelZ];
         //   color.setHSL(Math.random(), 1, 0.5); // HSL per colori più vivaci
           colors.set([color.r, color.g, color.b], i * 3);
+
+        //   instanceOpacity[i]=1.0;
     
           dummy.updateMatrix();
           dummy.matrix.toArray(array, i * 16);
@@ -87,7 +99,7 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         return { matrices: array, colors }; // Restituisci entrambe le array
       }, [count]);
 
-      
+
       useEffect(() => {
         if (mesh.current) {
           const { matrices, colors } = matriceswC; // Destructure
@@ -105,6 +117,8 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
 
           var colorBase = new Float32Array(colors);
           instancedMesh.geometry.setAttribute('colorBase', new THREE.BufferAttribute(colorBase, 3));
+
+          instancedMesh.geometry.setAttribute('instanceOpacity', new THREE.InstancedBufferAttribute(instanceOpacity, 1));
         }
       }, [matriceswC]);
 
@@ -132,7 +146,6 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
       },500);
     }
 
-    
     const onHoverExit = (_: ThreeEvent<PointerEvent>) => {
         setHover(null);
     }
@@ -150,11 +163,89 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         }
     }
 
-    const hideBars= () => {
+    useEffect(() => {
         const idsToHide: Set<number> = new Set(filteredData.map(dict => dict.id));
         const toHide: number[] = instanceData.filter(dict => !idsToHide.has(dict.id)).map(dict => dict.id);
-        console.log(filteredData.length);
-    }
+        const instancesIdx: number[] = [];
+        instanceData.forEach((dict, i) => {
+            if (toHide.includes(dict.id)) {
+                instancesIdx.push(i);
+            }
+        });
+
+        // const newOpacity = new Float32Array(op); // Copia!
+        instancesIdx.forEach(i => {
+            instanceOpacity[i] = 0.3;
+        });
+        // setInstanceOpacity(newOpacity);
+
+        mesh.current.geometry.attributes.instanceOpacity.needsUpdate = true;
+        // mesh.current.material = newMaterial;
+    }, [filteredData]);
+
+    useEffect(()=>{
+        const newMaterial = new THREE.ShaderMaterial({
+            // ... (uniforms)
+            vertexShader: `
+              attribute vec3 color; // Attributo per il colore di base
+              attribute float instanceOpacity;
+          
+              varying vec3 vBaseColor; // Variabile per passare il colore di base al fragment shader
+              varying float vOpacity;
+          
+              void main() {
+                vBaseColor = color; // Assegna il valore dell'attributo alla variabile varying
+                vOpacity = instanceOpacity;
+          
+                gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+              }
+            `,
+            fragmentShader: `
+              varying vec3 vBaseColor; // Variabile per ricevere il colore di base dal vertex shader
+              varying float vOpacity;
+          
+              void main() {
+                gl_FragColor = vec4(vBaseColor, vOpacity); // Utilizza il colore di base e l'opacità variabile
+              }
+            `
+          });
+          console.log(instanceOpacity);
+          mesh.current.material = newMaterial;
+    },[instanceOpacity]);
+
+    // const newMaterial = useMemo(() => new THREE.ShaderMaterial({
+    //     // ... (uniforms)
+    //     vertexShader: `
+    //       attribute vec3 color; // Attributo per il colore di base
+    //       attribute float instanceOpacity;
+      
+    //       varying vec3 vBaseColor; // Variabile per passare il colore di base al fragment shader
+    //       varying float vOpacity;
+      
+    //       void main() {
+    //         vBaseColor = color; // Assegna il valore dell'attributo alla variabile varying
+    //         vOpacity = instanceOpacity;
+      
+    //         gl_Position = projectionMatrix * modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+    //       }
+    //     `,
+    //     fragmentShader: `
+    //       varying vec3 vBaseColor; // Variabile per ricevere il colore di base dal vertex shader
+    //       varying float vOpacity;
+      
+    //       void main() {
+    //         gl_FragColor = vec4(vBaseColor, vOpacity); // Utilizza il colore di base e l'opacità variabile
+    //       }
+    //     `
+    //   }),[instanceOpacity]);
+
+    // useLayoutEffect(() => {
+    //     if (mesh.current && mesh.current.material) {
+    //         // mesh.current.material = newMaterial;
+    //     }
+    // }, [newMaterial]);
+
+
 
 
     const onClick = (e: ThreeEvent<MouseEvent>) => {   
@@ -172,7 +263,6 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
           onClickbar(clickedInstanceData.id);
           aura(instanceIndex,true);
           aura(pevId,false);
-          hideBars();
           pevId = instanceIndex;
         }
       }
