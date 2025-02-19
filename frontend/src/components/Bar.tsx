@@ -14,19 +14,26 @@ type BarProps = {
 };
 type BarPropsb = {
     instanceData: tabData[];
+    filteredData:tabData[];
     mouse: THREE.Vector2;
     setHover: React.Dispatch<React.SetStateAction<tabData | null>>;
     setTooltip: React.Dispatch<React.SetStateAction<THREE.Vector3>>;
     onClickbar: (id: number) => void;
 };
 
-function Bar({ instanceData,mouse, setHover,setTooltip, onClickbar }: BarPropsb) {
+var pevId: number = -1;
+
+function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar }: BarPropsb) {
 
     const mesh = useRef<THREE.InstancedMesh>(null!);
     const dummy = useMemo(() => new THREE.Object3D(), []);
 
     const geometry = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
-    const material = useMemo(() => new THREE.MeshBasicMaterial({ color: 'white' }), []);
+    const material = useMemo(() => new THREE.MeshPhysicalMaterial({ 
+        color: 'white', 
+        clearcoat: 0.9, 
+        transparent:true, 
+        opacity:1 }), []);
 
     const availableColors = [ // Array con i colori disponibili
         new THREE.Color('red'),
@@ -95,6 +102,9 @@ function Bar({ instanceData,mouse, setHover,setTooltip, onClickbar }: BarPropsb)
     
           // Important for performance:  Set the mesh to have vertex colors
           instancedMesh.geometry.setAttribute('color', instancedMesh.instanceColor);
+
+          var colorBase = new Float32Array(colors);
+          instancedMesh.geometry.setAttribute('colorBase', new THREE.BufferAttribute(colorBase, 3));
         }
       }, [matriceswC]);
 
@@ -122,19 +132,48 @@ function Bar({ instanceData,mouse, setHover,setTooltip, onClickbar }: BarPropsb)
       },500);
     }
 
-    const onHoverExit = (e: ThreeEvent<PointerEvent>) => {
-      setHover(null);
+    
+    const onHoverExit = (_: ThreeEvent<PointerEvent>) => {
+        setHover(null);
+    }
+    
+    const highlightColor = new THREE.Color("black");
+    const aura = (id:number, h: boolean) => {
+        if(mesh.current != undefined) {
+            mesh.current.geometry.attributes.color.setXYZ(
+                id,
+                h ? highlightColor.r : mesh.current.geometry.attributes.colorBase.getX(id),
+                h ? highlightColor.g : mesh.current.geometry.attributes.colorBase.getY(id),
+                h ? highlightColor.b : mesh.current.geometry.attributes.colorBase.getZ(id)
+              );
+            mesh.current.geometry.attributes.color.needsUpdate = true;
+        }
     }
 
-    const onClick = (e: ThreeEvent<MouseEvent>) => {        
-      const intersects = e.intersections;
+    const hideBars= () => {
+        const idsToHide: Set<number> = new Set(filteredData.map(dict => dict.id));
+        const toHide: number[] = instanceData.filter(dict => !idsToHide.has(dict.id)).map(dict => dict.id);
+        console.log(filteredData.length);
+    }
 
-      if (intersects.length > 0) {
+
+    const onClick = (e: ThreeEvent<MouseEvent>) => {   
+        
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, e.camera);
+        
+        const intersects = raycaster.intersectObject(mesh.current);
+    
+    if (intersects.length > 0) {
         const intersection = intersects[0];
         const instanceIndex = intersection.instanceId;
         if (instanceIndex !== undefined) {
           const clickedInstanceData = instanceData[instanceIndex];
           onClickbar(clickedInstanceData.id);
+          aura(instanceIndex,true);
+          aura(pevId,false);
+          hideBars();
+          pevId = instanceIndex;
         }
       }
     }

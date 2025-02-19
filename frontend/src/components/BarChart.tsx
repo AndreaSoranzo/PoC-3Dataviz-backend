@@ -42,6 +42,7 @@ function BarChart({ selectedBar }: BarChartProps) {
       else 
         setFilteredData(data.filter((d) => d.value <= clickedBar.value)); // Filtra i dati
     }
+    console.log(filteredData);
   }
 
   // const instanceData = useMemo(() => {
@@ -107,32 +108,32 @@ function BarChart({ selectedBar }: BarChartProps) {
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [camera, scene, data]);
 
-  useEffect(() => {
-    if (selectedBar) {
-      // Centra la camera sulla barra selezionata
-      const barPosition = new THREE.Vector3(selectedBar.labelX * 6, selectedBar.value + 10, selectedBar.labelZ * 5 + 3);
+  // useEffect(() => {
+  //   if (selectedBar) {
+  //     // Centra la camera sulla barra selezionata
+  //     const barPosition = new THREE.Vector3(selectedBar.labelX * 6, selectedBar.value + 10, selectedBar.labelZ * 5 + 3);
       
-      //  GSAP per la transizione
-      gsap.to(camera.position, {
-        x: barPosition.x,
-        y: barPosition.y , 
-        z: barPosition.z -50,
-        duration: 1, 
-        ease: "power2.out",
-      });
+  //     //  GSAP per la transizione
+  //     gsap.to(camera.position, {
+  //       x: barPosition.x,
+  //       y: barPosition.y , 
+  //       z: barPosition.z -50,
+  //       duration: 1, 
+  //       ease: "power2.out",
+  //     });
 
-      gsap.to(camera, {
-        zoom: 1.6, //livello del zoom
-        duration: 1,
-        ease: "power2.out",
-        onUpdate: () => {
-          camera.updateProjectionMatrix();
-        },
-      });
+  //     gsap.to(camera, {
+  //       zoom: 1.6, //livello del zoom
+  //       duration: 1,
+  //       ease: "power2.out",
+  //       onUpdate: () => {
+  //         camera.updateProjectionMatrix();
+  //       },
+  //     });
 
-      camera.lookAt(barPosition); // positionare la camrea sul bar selezionato
-    }
-  }, [selectedBar, camera]);
+  //     camera.lookAt(barPosition); // positionare la camrea sul bar selezionato
+  //   }
+  // }, [selectedBar, camera]);
 
   const nLabel = xLabels.length;
   const xAxisLength = 6 * nLabel ;
@@ -144,6 +145,7 @@ function BarChart({ selectedBar }: BarChartProps) {
         <Bar
         mouse={mouse.current}
         instanceData={data}
+        filteredData={filteredData}
         setHover={setHoveredBar}
         setTooltip={setTooltipPosition}
         onClickbar={handleBarClick}
