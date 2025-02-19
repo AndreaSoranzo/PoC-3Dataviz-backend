@@ -91,7 +91,7 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         //   color.setHSL(Math.random(), 1, 0.5); // HSL per colori più vivaci
           colors.set([color.r, color.g, color.b], i * 3);
 
-        //   instanceOpacity[i]=1.0;
+          instanceOpacity[i]=1.0;
     
           dummy.updateMatrix();
           dummy.matrix.toArray(array, i * 16);
@@ -174,8 +174,16 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         });
 
         // const newOpacity = new Float32Array(op); // Copia!
-        instancesIdx.forEach(i => {
-            instanceOpacity[i] = 0.3;
+        // instancesIdx.forEach(i => {
+        //     instanceOpacity[i] = 0.3;
+        // });
+        const bars: Set<number> = new Set(instanceData.map(dict => dict.id));
+        bars.forEach(i=> {
+            if (instancesIdx.includes(i)) {
+                instanceOpacity[i] = 0.3;
+            } else {
+                instanceOpacity[i] = 1.0;
+            }
         });
         // setInstanceOpacity(newOpacity);
 
@@ -209,9 +217,9 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
               }
             `
           });
-          console.log(instanceOpacity);
           mesh.current.material = newMaterial;
-    },[instanceOpacity]);
+          console.log(newMaterial);
+    },[filteredData]);
 
     // const newMaterial = useMemo(() => new THREE.ShaderMaterial({
     //     // ... (uniforms)
