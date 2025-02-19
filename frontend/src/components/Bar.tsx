@@ -1,6 +1,6 @@
-import { useRef, useMemo,useEffect } from 'react';
+import { useRef, useMemo,useEffect,useState } from 'react';
 import * as THREE from 'three';
-import { ThreeEvent } from '@react-three/fiber';
+import { ThreeEvent,useThree } from '@react-three/fiber';
 import { rawData, tabData } from '../App';
 
 type BarProps = {
@@ -13,12 +13,14 @@ type BarProps = {
     onHover?: (e: ThreeEvent<PointerEvent>, bar: rawData | null) => void;
 };
 type BarPropsb = {
-    data: tabData[];
-    // onClick: (id: string, e: ThreeEvent<MouseEvent>) => void;
-    // onHover?: (e: ThreeEvent<PointerEvent>, bar: rawData | null) => void;
+    instanceData: tabData[];
+    mouse: THREE.Vector2;
+    setHover: React.Dispatch<React.SetStateAction<tabData | null>>;
+    setTooltip: React.Dispatch<React.SetStateAction<THREE.Vector3>>;
+    onClickbar: (id: number) => void;
 };
 
-function Bar({ data }: BarPropsb) {
+function Bar({ instanceData,mouse, setHover,setTooltip, onClickbar }: BarPropsb) {
 
     const mesh = useRef<THREE.InstancedMesh>(null!);
     const dummy = useMemo(() => new THREE.Object3D(), []);
@@ -33,18 +35,18 @@ function Bar({ data }: BarPropsb) {
         new THREE.Color('gray'),
       ];
     
-    const instanceData = useMemo(() => {
-        const array = [];
-        for (let d of data) {
-          array.push({
-            key: d.id,
-            labelX: d.labelX,
-            value: d.value,
-            labelZ: d.labelZ
-          });
-        }
-        return array;
-    }, [data]);
+    // const instanceData = useMemo(() => {
+    //     const array = [];
+    //     for (let d of data) {
+    //       array.push({
+    //         key: d.id,
+    //         labelX: d.labelX,
+    //         value: d.value,
+    //         labelZ: d.labelZ
+    //       });
+    //     }
+    //     return array;
+    // }, [data]);
     
     // const { id, labelX, value, labelZ } = row;
 
@@ -68,7 +70,6 @@ function Bar({ data }: BarPropsb) {
           dummy.rotation.set(0, 0, 0);
     
           // Colore casuale
-          console.log(instanceData[i].labelZ);
           const color = availableColors[instanceData[i].labelZ];
         //   color.setHSL(Math.random(), 1, 0.5); // HSL per colori più vivaci
           colors.set([color.r, color.g, color.b], i * 3);
@@ -97,10 +98,56 @@ function Bar({ data }: BarPropsb) {
         }
       }, [matriceswC]);
 
+    const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    const onHoverEnter = (e: ThreeEvent<PointerEvent>) => {
+      if (hoverTimeout.current !== null) {
+        clearTimeout(hoverTimeout.current);
+      }
+      hoverTimeout.current = setTimeout(() => {
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(mouse, e.camera);
+        
+        const intersects = raycaster.intersectObject(mesh.current);
+        
+        if (intersects.length > 0) {
+            const intersection = intersects[0];
+            const instanceIndex = intersection.instanceId;
+          if (instanceIndex !== undefined) {
+            const clickedInstanceData = instanceData[instanceIndex];
+            setHover(clickedInstanceData ? clickedInstanceData : null); // Mostra il tooltip
+            setTooltip(intersection.point.add(new THREE.Vector3(0.5, -0.5, 0)));
+          }
+        }
+      },500);
+    }
+
+    const onHoverExit = (e: ThreeEvent<PointerEvent>) => {
+      setHover(null);
+    }
+
+    const onClick = (e: ThreeEvent<MouseEvent>) => {        
+      const intersects = e.intersections;
+
+      if (intersects.length > 0) {
+        const intersection = intersects[0];
+        const instanceIndex = intersection.instanceId;
+        if (instanceIndex !== undefined) {
+          const clickedInstanceData = instanceData[instanceIndex];
+          onClickbar(clickedInstanceData.id);
+        }
+      }
+    }
+    
+
     return (
         <instancedMesh 
             ref={mesh} 
-            args={[geometry, material, count]}>
+            args={[geometry, material, count]}
+            onClick={onClick}
+            onPointerOver={onHoverEnter}
+            onPointerLeave={onHoverExit}
+            >
           <primitive object={geometry} />
           <primitive object={material} />
         </instancedMesh>

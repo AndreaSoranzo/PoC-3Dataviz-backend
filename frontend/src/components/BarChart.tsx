@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect,useMemo } from "react";
 import Bar from "./Bar";
 import XAxis from "./XAxis";
 import ZAxis from "./ZAxis";
@@ -18,60 +18,89 @@ type BarChartProps = {
 function BarChart({ selectedBar }: BarChartProps) {
   const { data, filteredData, setFilteredData, setSelectedBar, xLabels, zLabels, showAveragePlane, isGreaterChecked } = useDataContext();
   
-  const handleBarClick = (id: string, event: ThreeEvent<MouseEvent>) => {
-    const clickedBar: tabData | undefined = data.find((bar) => bar.id.toString() === id);
+  // const handleBarClick = (id: string, event: ThreeEvent<MouseEvent>) => {
+  //   const clickedBar: tabData | undefined = data.find((bar) => bar.id.toString() === id);
     
-    const intersections = event.intersections;
+  //   const intersections = event.intersections;
 
-    if (intersections[0]?.object === event.object) {
-      if (clickedBar) {
-        setSelectedBar(clickedBar); // Imposta la barra selezionata
-        if (isGreaterChecked)
-          setFilteredData(data.filter((d) => d.value >= clickedBar.value)); // Filtra i dati
-        else 
-          setFilteredData(data.filter((d) => d.value <= clickedBar.value)); // Filtra i dati
-      }
+  //   if (intersections[0]?.object === event.object) {
+  //     if (clickedBar) {
+  //       setSelectedBar(clickedBar); // Imposta la barra selezionata
+  //       if (isGreaterChecked)
+  //         setFilteredData(data.filter((d) => d.value >= clickedBar.value)); // Filtra i dati
+  //       else 
+  //         setFilteredData(data.filter((d) => d.value <= clickedBar.value)); // Filtra i dati
+  //     }
+  //   }
+  // }
+  const handleBarClick = (id: number) => {
+    const clickedBar: tabData | undefined = data.find((bar) => bar.id === id);
+    if (clickedBar) {
+      setSelectedBar(clickedBar); // Imposta la barra selezionata
+      if (isGreaterChecked)
+        setFilteredData(data.filter((d) => d.value >= clickedBar.value)); // Filtra i dati
+      else 
+        setFilteredData(data.filter((d) => d.value <= clickedBar.value)); // Filtra i dati
     }
   }
 
+  // const instanceData = useMemo(() => {
+  //     const array = [];
+  //     for (let d of data) {
+  //       array.push({
+  //         key: d.id,
+  //         labelX: d.labelX,
+  //         value: d.value,
+  //         labelZ: d.labelZ,
+  //       });
+  //     }
+  //     return array;
+  // }, [data]);
+      
+
   const [hoveredBar, setHoveredBar] = useState<tabData | null>(null);
-  const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // const hoverTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState(new THREE.Vector3());
-  const raycaster = useRef(new THREE.Raycaster());
+  // const raycaster = useRef(new THREE.Raycaster());
   const mouse = useRef(new THREE.Vector2());
 
   const { camera, scene } = useThree();
 
   const handleMouseMove = (event: MouseEvent) => {
-    if (hoverTimeout.current !== null) {
-      clearTimeout(hoverTimeout.current);
-    }
-    hoverTimeout.current = setTimeout(() => {
-      // Calcola le coordinate del mouse normalizzate (-1 a 1)
-      const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
-      mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-      // Lancia il raggio
-      raycaster.current.setFromCamera(mouse.current, camera);
-
-      // Trova le intersezioni con le barre
-      const intersects = raycaster.current.intersectObjects(scene.children);
-      const filteredIntersects = intersects.filter(i => i.object.userData.id !== 'average');
-      if (filteredIntersects.length > 0) {
-        const firstObject = filteredIntersects[0].object; // L'oggetto più vicino
-        const intersectedBar = data.find((bar) => bar.id === firstObject.userData.id);
-
-        if (intersectedBar) {
-          setHoveredBar(intersectedBar ? intersectedBar : null); // Mostra il tooltip
-          setTooltipPosition(intersects[0].point.add(new THREE.Vector3(0.5, -0.5, 0)));
-        }
-      } else {
-        setHoveredBar(null); // Nessuna barra sotto il mouse
-      }
-      
-    }, 40);
+    const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+    mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
   };
+  // const handleMouseMove = (event: MouseEvent) => {
+  //   if (hoverTimeout.current !== null) {
+  //     clearTimeout(hoverTimeout.current);
+  //   }
+  //   hoverTimeout.current = setTimeout(() => {
+  //     // Calcola le coordinate del mouse normalizzate (-1 a 1)
+  //     const rect = (event.target as HTMLCanvasElement).getBoundingClientRect();
+  //     mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+  //     mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+      
+  //     // Lancia il raggio
+  //     raycaster.current.setFromCamera(mouse.current, camera);
+      
+  //     // Trova le intersezioni con le barre
+  //     const intersects = raycaster.current.intersectObjects(scene.children);
+  //     const filteredIntersects = intersects.filter(i => i.object.userData.id !== 'average');
+  //     if (filteredIntersects.length > 0) {
+  //       const firstObject = filteredIntersects[0].object; // L'oggetto più vicino
+  //       const intersectedBar = data.find((bar) => bar.id === firstObject.userData.id);
+
+  //       if (intersectedBar) {
+  //         setHoveredBar(intersectedBar ? intersectedBar : null); // Mostra il tooltip
+  //         setTooltipPosition(intersects[0].point.add(new THREE.Vector3(0.5, -0.5, 0)));
+  //       }
+  //     } else {
+  //       setHoveredBar(null); // Nessuna barra sotto il mouse
+  //     }
+      
+  //   }, 40);
+  // };
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
@@ -113,7 +142,11 @@ function BarChart({ selectedBar }: BarChartProps) {
     <>
       {
         <Bar
-        data={data}
+        mouse={mouse.current}
+        instanceData={data}
+        setHover={setHoveredBar}
+        setTooltip={setTooltipPosition}
+        onClickbar={handleBarClick}
         // onClick={handleBarClick}
         // aura={selectedBar ? selectedBar.id === d.id : false}
       />
