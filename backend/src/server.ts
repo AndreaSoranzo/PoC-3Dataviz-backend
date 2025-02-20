@@ -89,6 +89,47 @@ app.get("/apiK/call", async (req: Request, res: Response) => {
     }
 });
 
+app.get("/api/hcall", async (req: Request, res: Response) => {
+    const latitudes = cities.map(city => city.latitude).join(",");
+    const longitudes = cities.map(city => city.longitude).join(",");
+    const URL = `https://archive-api.open-meteo.com/v1/archive?latitude=${latitudes}&longitude=${longitudes}&start_date=2024-01-01&end_date=2024-03-01&hourly=temperature_2m`;
+    const legend = {
+        x: "DateTime",
+        y: "Temperature",
+        z: "City"
+    }
+
+    try {
+
+        const cachedData = await getFromCache<{data: rawData[], legend: Legend}>("api");
+        if(cachedData) {
+            console.log("sto prendendo dalla cache");
+            res.json(cachedData);
+            await deleteFromCache("api"); // elimino dalla cache per testare il corretto funzionamento di memcache
+            return;
+        }
+
+        console.log("sto facendo la request");
+
+        const response = await axios.get(URL);
+        let data: rawData[] = [];
+        for (let i = 0; i < cities.length; i++) {
+            const hours: string[] = response.data[i].hourly.time;
+            const values: number[] = response.data[i].hourly.temperature_2m;
+            for (let j = 0; j < hours.length; j++) {
+                const entry: rawData = { id: j * cities.length + i, labelX: hours[j].replace('T', ' '), value: values[j], labelZ: cities[i].name };
+                data.push(entry);
+            }
+        }
+
+        const d = {data: data, legend: legend}
+        await setToCache("api",d);
+        res.json(d);
+    }
+    catch (error) {
+        res.status(500).json({ error: "Errore nel recupero dei dati" });
+    }
+});
 app.get("/api/call", async (req: Request, res: Response) => {
     const latitudes = cities.map(city => city.latitude).join(",");
     const longitudes = cities.map(city => city.longitude).join(",");

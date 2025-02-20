@@ -26,7 +26,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get("http://127.0.0.1:5000/api/call/"); // chiamata a api no key
+                // const response = await axios.get("http://127.0.0.1:5000/api/call/"); // chiamata a api no key
+                const response = await axios.get("http://127.0.0.1:5000/api/hcall/"); // chiamata a api no key
                 // const response = await axios.get("http://127.0.0.1:5000/apiK/call/"); // chiamata a api with key
 
                 setFetched(response.data); 

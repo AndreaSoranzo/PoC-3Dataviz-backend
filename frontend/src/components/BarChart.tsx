@@ -165,7 +165,10 @@ function BarChart({ selectedBar }: BarChartProps) {
           );
         })
         }; */}
-      <XAxis length={xAxisLength} />
+      {/* <XAxis length={xAxisLength} />
+      <YAxis xLength={xAxisLength} />
+      <ZAxis length={zAxisLength} /> */}
+      <XAxis length={xAxisLength}/>
       <YAxis xLength={xAxisLength} />
       <ZAxis length={zAxisLength} />
       {hoveredBar && <Tooltip position={tooltipPosition} bar={hoveredBar} />}
