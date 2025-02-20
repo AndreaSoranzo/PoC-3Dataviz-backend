@@ -36,7 +36,7 @@ function XAxis({ length }: XAxisProps) {
             canvas.width = 296;
             canvas.height = 64;
             context!.clearRect(0, 0, canvas.width, canvas.height);
-            context!.font = '18px Arial';
+            context!.font = 'bold 18px Arial';
             context!.fillStyle = 'black';
             context!.fillText(text, canvas.width / 2, canvas.height / 2);
             const texture = new THREE.CanvasTexture(canvas);
@@ -84,19 +84,20 @@ function XAxis({ length }: XAxisProps) {
     // }));
 
     const labels = xLabels.map((text, index) => ({
+        text,
         material: materials[index],
         position: new THREE.Vector3(6 * index + 5, -1, 0),
         rotation: new THREE.Euler(0, Math.PI, 0, 'XYZ')
     }));
 
-    const font = new FontLoader().parse(myFont);
+    // const font = new FontLoader().parse(myFont);
 
-        const geometry = useMemo(() => new THREE.BoxGeometry(5, 1, 0), []);
-        const material = useMemo(() => new THREE.MeshPhysicalMaterial({ 
-            color: 'white', 
-            clearcoat: 0.9, 
-            transparent:true, 
-            opacity:1 }), []);
+    //     const geometry = useMemo(() => new THREE.BoxGeometry(5, 1, 0), []);
+    //     const material = useMemo(() => new THREE.MeshPhysicalMaterial({ 
+    //         color: 'white', 
+    //         clearcoat: 0.9, 
+    //         transparent:true, 
+    //         opacity:1 }), []);
 
     return (
         <>
@@ -134,7 +135,7 @@ function XAxis({ length }: XAxisProps) {
                 //     (Math.random() - 0.5) * 10,
                 //     (Math.random() - 0.5) * 10
                 // );
-                <primitive object={new THREE.Sprite(text.material)} position={text.position} rotation={text.rotation} scale={[8,2,2]}/>
+                <primitive key={text.text} object={new THREE.Sprite(text.material)} position={text.position} rotation={text.rotation} scale={[8,2,2]}/>
             ))}
         </>
     );

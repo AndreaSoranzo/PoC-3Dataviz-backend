@@ -263,10 +263,10 @@ function Bar({ instanceData,filteredData,mouse, setHover,setTooltip, onClickbar 
         
         const intersects = raycaster.intersectObject(mesh.current);
     
-    if (intersects.length > 0) {
+    if (intersects.length > 0 ) {
         const intersection = intersects[0];
         const instanceIndex = intersection.instanceId;
-        if (instanceIndex !== undefined) {
+        if (instanceIndex !== undefined && pevId!==instanceIndex) {
           const clickedInstanceData = instanceData[instanceIndex];
           onClickbar(clickedInstanceData.id);
           aura(instanceIndex,true);
