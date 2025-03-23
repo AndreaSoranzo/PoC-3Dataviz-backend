@@ -8,7 +8,7 @@ services:
     restart: always
   server:
     build: 
-      dockerfile: ./backend/Dockerfile.dev
+      dockerfile: ./backend/Dockerfile.dep
     container_name: server
     ports:
       - "5000:5000"
@@ -18,7 +18,7 @@ services:
       - memcached
   client:
     build: 
-      dockerfile: ./frontend/Dockerfile.dev
+      dockerfile: ./frontend/Dockerfile.dep
     container_name: client
     ports:
       - "5173:5173"

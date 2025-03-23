@@ -3,7 +3,6 @@ WORKDIR /app
 
 COPY ./backend/package*.json .
 
-RUN npm cache clean --force
 RUN npm ci
 # RUN npm install -g ts-node
 

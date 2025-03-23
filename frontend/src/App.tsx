@@ -69,7 +69,7 @@ function App() {
     <DataContext.Provider value={{ data: processed_data, filteredData, setFilteredData, setSelectedBar, xLabels, zLabels, showAveragePlane, isGreaterChecked }}>
       <div id='controls'>
         <div id="title">
-          <h1>3Dataviz PoC</h1>
+          <h1>3Dataviz GROB</h1>
         </div>
         <div id='table-container'>
           <DynamicTable onCellClick={handleCellClick}/>

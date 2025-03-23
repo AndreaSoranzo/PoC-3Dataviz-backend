@@ -1,15 +1,15 @@
-name: 3dataviz
+name: 3dataviz-dev
 services:
   memcached:
     image: memcached
-    container_name: memcached
+    container_name: memcached-dev
     ports:
       - "11211:11211"
     restart: always
   server:
     build: 
       dockerfile: ./backend/Dockerfile.dev
-    container_name: server
+    container_name: server-dev
     ports:
       - "5000:5000"
     env_file:
@@ -18,14 +18,16 @@ services:
       - memcached
     volumes:
       - ./backend:/app
+      - /app/node_modules
 
   client:
     build: 
       dockerfile: ./frontend/Dockerfile.dev
-    container_name: client
+    container_name: client-dev
     ports:
       - "5173:5173"
     depends_on:
       - server
     volumes:
       - ./frontend:/app
+      - /app/node_modules
