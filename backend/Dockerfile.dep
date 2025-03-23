@@ -1,0 +1,16 @@
+FROM node:18-alpine
+WORKDIR /app
+
+COPY . .
+
+RUN npm cache clean --force
+RUN npm ci
+# RUN npm install -g ts-node
+
+# RUN npm install npm i -g @nestjs/cli
+# RUN npm run build
+EXPOSE 5000
+
+# CMD ["npm", "run", "start"]
+
+CMD ["npx", "ts-node", "src/server.ts"]

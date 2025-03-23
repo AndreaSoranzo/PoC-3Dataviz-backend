@@ -1,6 +1,6 @@
 import memjs from 'memjs';
 
-const memcached = memjs.Client.create("localhost:11211");
+const memcached = memjs.Client.create("memcached:11211");
 
 export function getFromCache<T>(key: string): Promise<T | null> {
   return new Promise((resolve, reject) => {
