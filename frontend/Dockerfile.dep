@@ -4,7 +4,6 @@ WORKDIR /app
 COPY ./frontend .
 
 RUN npm ci
-# RUN npm install -g vite
 
 EXPOSE 5173
 

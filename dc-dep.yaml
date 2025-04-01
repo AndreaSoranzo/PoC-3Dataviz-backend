@@ -11,7 +11,7 @@ services:
       dockerfile: ./backend/Dockerfile.dep
     container_name: server
     ports:
-      - "5000:5000"
+      - "3000:3000"
     env_file:
       - ./backend/.your-env
     depends_on:
